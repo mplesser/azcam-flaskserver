@@ -1,6 +1,6 @@
 # azcam-flaskserver
 
-*azcam-flaskserver* is an *azcam* extension which adds support for a fl;ask-based web server.
+*azcam-flaskserver* is an *azcam* extension which adds support for a flask-based web server.
 
 ## Installation
 
