@@ -8,3 +8,17 @@
 
 or download from github: https://github.com/mplesser/azcam-flaskserver.git.
 
+## Uage Example
+
+```python
+from azcam_flaskserver.flask_server import WebServer
+webserver = WebServer()
+webserver.templates_folder = azcam.db.systemfolder
+webserver.index = f"index_mysystem.html"
+webserver.start()
+
+# options
+azcam_exptool.load()
+azcam_status.load()
+azcam_observe.webobs.load()
+```
