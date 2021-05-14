@@ -14,6 +14,7 @@ setup(
     keywords="python",
     packages=find_packages(),
     zip_safe=False,
+    url="https://mplesser.github.io/azcam/",
     install_requires=["azcam"],
     include_package_data=True,
 )
