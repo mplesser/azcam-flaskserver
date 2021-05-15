@@ -73,7 +73,7 @@ class WebServer(object):
                 else:
                     azcam.log(url, prefix="Web-> ")
 
-            reply = azcam.db.api.web_command(command, url)
+            reply = azcam.db.api.web_command(url)
 
             if self.logcommands:
                 if "api/exposure/get_status" in url:
