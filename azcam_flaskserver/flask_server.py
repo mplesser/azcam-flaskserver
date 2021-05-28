@@ -26,7 +26,7 @@ class WebServer(object):
         self.upload_folder = "/data/uploads"
 
         self.logcommands = 0
-        self.logstatus = 0  # also log get_status
+        self.logstatus = 0
 
         # port for webserver
         self.port = None
@@ -67,20 +67,12 @@ class WebServer(object):
 
             url = request.url
             if self.logcommands:
-                if "api/exposure/get_status" in url:
-                    if self.logstatus:
-                        azcam.log(url, prefix="Web-> ")
-                else:
-                    azcam.log(url, prefix="Web-> ")
+                azcam.log(url, prefix="Web-> ")
 
             reply = azcam.db.api.web_command(url)
 
             if self.logcommands:
-                if "api/exposure/get_status" in url:
-                    if self.logstatus:
-                        azcam.log(reply, prefix="Web->   ")
-                else:
-                    azcam.log(reply, prefix="Web->   ")
+                azcam.log(reply, prefix="Web->   ")
 
             return reply
 
