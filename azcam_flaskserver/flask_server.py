@@ -23,7 +23,7 @@ class WebServer(object):
 
         self.templates_folder = ""
         self.index = "index.html"
-        self.upload_folder = "/data/uploads"
+        self.upload_folder = ""
 
         self.logcommands = 0
         self.logstatus = 0
@@ -119,9 +119,14 @@ class WebServer(object):
             self.app.config["UPLOAD_FOLDER"] = self.upload_folder
             self.webthread = threading.Thread(
                 target=self.app.run,
-                kwargs={"threaded": True, "host": "0.0.0.0", "port": self.port},
+                kwargs={
+                    "debug": False,
+                    "threaded": True,
+                    "host": "0.0.0.0",
+                    "port": self.port,
+                },
             )
-            self.webthread.daemon = True  # terminates wehn main process exits
+            self.webthread.daemon = True  # terminates when main process exits
             self.webthread.start()
             self.is_running = 1
 
