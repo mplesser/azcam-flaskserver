@@ -67,12 +67,14 @@ class WebServer(object):
 
             url = request.url
             if self.logcommands:
-                azcam.log(url, prefix="Web-> ")
+                if not ("exposure/get_status" in url or "/watchdog" in url):
+                    azcam.log(url, prefix="Web-> ")
 
             reply = azcam.db.api.web_command(url)
 
             if self.logcommands:
-                azcam.log(reply, prefix="Web->   ")
+                if not ("exposure/get_status" in url or "/watchdog" in url):
+                    azcam.log(reply, prefix="Web->   ")
 
             return reply
 
