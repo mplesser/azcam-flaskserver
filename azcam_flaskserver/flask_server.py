@@ -59,13 +59,14 @@ class WebServer(object):
         # ******************************************************************************
         # API commands - .../api/tool/command
         # ******************************************************************************
-        @app.route("/api/<path:command>", methods=["GET"])
+        @app.route("/api/<path:command>", methods=["GET", "POST"])
         def api(command):
             """
             Remote web api commands. such as: /api/expose or /api/exposure/reset
             """
 
             url = request.url
+            print(command, url)
             if self.logcommands:
                 if not ("exposure/get_status" in url or "/watchdog" in url):
                     azcam.log(url, prefix="Web-> ")
@@ -107,7 +108,7 @@ class WebServer(object):
             log1 = logging.getLogger("werkzeug")
             log1.setLevel(logging.ERROR)
 
-        # 0 => threaded for command line use (when imported)
+        # 1 => threaded for command line use (when imported)
         if 0:
             self.app.jinja_env.auto_reload = True
             self.app.config["TEMPLATES_AUTO_RELOAD"] = True
