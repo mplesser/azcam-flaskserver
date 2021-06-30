@@ -1,13 +1,26 @@
 """
 Configure and start Flask web server.
 Import this after all configuration has been completed.
+All API commands suported here must start with ""http://locahost:2402/api/".
+Both GET and POST are supported for /api/.
+
 URL example: "http://locahost:2402/api/instrument/set_filter?filter=1&filter_id=2"
+
+Default response is JSON:
+    response = {
+        "message": "Finished",
+        "command": urlparse(url).path,
+        "data": reply,
+    }
+If webserver.return_json is False, then just "data" is returned.
+
 """
 
 import logging
 import os
 import sys
 import threading
+from urllib.parse import urlparse
 
 from flask import Flask, render_template, request, send_from_directory
 
@@ -20,6 +33,8 @@ class WebServer(object):
     """
 
     def __init__(self):
+
+        self.return_json = 1
 
         self.templates_folder = ""
         self.index = "index.html"
@@ -66,18 +81,26 @@ class WebServer(object):
             """
 
             url = request.url
-            print(command, url)
+            print(url, command)
+            print(request.query_string)
+            # scriptname = request.args.get("scriptname")
+            # print(scriptname)
+
+            url = request.url
             if self.logcommands:
-                if not ("exposure/get_status" in url or "/watchdog" in url):
+                if not ("/get_status" in url or "/watchdog" in url):
                     azcam.log(url, prefix="Web-> ")
 
-            reply = azcam.db.api.web_command(url)
+            reply = azcam.db.webserver.web_command(url)
 
             if self.logcommands:
-                if not ("exposure/get_status" in url or "/watchdog" in url):
+                if not ("/get_status" in url or "/watchdog" in url):
                     azcam.log(reply, prefix="Web->   ")
 
-            return reply
+            if self.return_json:
+                return reply
+            else:
+                return reply["data"]
 
     def stop(self):
         """
@@ -134,3 +157,91 @@ class WebServer(object):
             self.is_running = 1
 
         return
+
+    def web_command(self, url):
+        """
+        Parse and execute a command string received as a URL.
+        Returns the reply as a JSON packet.
+        """
+
+        try:
+            obj, method, kwargs = self._web_parse(url)
+
+            # primary object must be in db.remote_tools
+            objects = obj.split(".")
+            if objects[0] not in azcam.db.remote_tools:
+                raise azcam.AzcamError(f"remote call not allowed in API: {obj}", 4)
+
+            if len(objects) == 1:
+                objid = azcam.db.get(obj)
+            elif len(objects) == 2:
+                objid = getattr(azcam.db.get(objects[0]), objects[1])
+            elif len(objects) == 3:
+                objid = getattr(getattr(azcam.db.get(objects[0]), objects[1]), objects[2])
+            else:
+                objid = None  # too complicated for now
+
+            caller = getattr(objid, method)
+            reply = caller() if kwargs is None else caller(**kwargs)
+
+        except azcam.AzcamError as e:
+            azcam.log(f"web_command error: {e}")
+            if e.error_code == 4:
+                reply = "remote call not allowed"
+            else:
+                reply = f"web_command error: {repr(e)}"
+        except Exception as e:
+            azcam.log(e)
+            reply = f"invalid API command: {url}"
+
+        # generic response
+        response = {
+            "message": "Finished",
+            "command": urlparse(url).path,
+            "data": reply,
+        }
+
+        return response
+
+    def _web_parse(self, url):
+        """
+        Parse URL.
+        Return the caller object, method, and keyword arguments.
+        Object may be compound, like "exposure.image.focalplane".
+
+        URL example: http://locahost:2402/api/instrument/set_filter?filter=1&filter_id=2
+        """
+
+        # parse URL
+        s = urlparse(url)
+        # remove /api/
+        if s.path.startswith("/api/"):
+            p = s.path[5:]
+        else:
+            raise azcam.AzcamError("Invalid API command: must start with /api/")
+
+        try:
+            tokens = p.split("/")
+        except Exception as e:
+            raise e("Invalid API command")
+
+        # get oject and method
+        if len(tokens) != 2:
+            raise azcam.AzcamError("Invalid API command")
+        obj, method = tokens
+
+        # get arguments
+        args = s.query.split("&")
+        if args == [""]:
+            kwargs = None
+        else:
+            kwargs = {}
+            for arg1 in args:
+                if "=" in arg1:
+                    arg, par = arg1.split("=")
+                else:
+                    arg = arg1
+                    par = None
+                kwargs[arg] = par
+
+        return obj, method, kwargs
