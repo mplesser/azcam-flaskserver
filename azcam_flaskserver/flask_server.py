@@ -34,8 +34,6 @@ class WebServer(object):
 
     def __init__(self):
 
-        self.return_json = 1
-
         self.templates_folder = ""
         self.index = "index.html"
         self.upload_folder = ""
@@ -91,16 +89,13 @@ class WebServer(object):
                 if not ("/get_status" in url or "/watchdog" in url):
                     azcam.log(url, prefix="Web-> ")
 
-            reply = azcam.db.webserver.web_command(url)
+            reply = self.web_command(url)
 
             if self.logcommands:
                 if not ("/get_status" in url or "/watchdog" in url):
                     azcam.log(reply, prefix="Web->   ")
 
-            if self.return_json:
-                return reply
-            else:
-                return reply["data"]
+            return reply
 
     def stop(self):
         """
