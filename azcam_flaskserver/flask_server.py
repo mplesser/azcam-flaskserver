@@ -172,7 +172,9 @@ class WebServer(object):
             elif len(objects) == 2:
                 objid = getattr(azcam.db.get(objects[0]), objects[1])
             elif len(objects) == 3:
-                objid = getattr(getattr(azcam.db.get(objects[0]), objects[1]), objects[2])
+                objid = getattr(
+                    getattr(azcam.db.get(objects[0]), objects[1]), objects[2]
+                )
             else:
                 objid = None  # too complicated for now
 
