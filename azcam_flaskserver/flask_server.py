@@ -79,12 +79,6 @@ class WebServer(object):
             """
 
             url = request.url
-            print(url, command)
-            print(request.query_string)
-            # scriptname = request.args.get("scriptname")
-            # print(scriptname)
-
-            url = request.url
             if self.logcommands:
                 if not ("/get_status" in url or "/watchdog" in url):
                     azcam.log(url, prefix="Web-> ")

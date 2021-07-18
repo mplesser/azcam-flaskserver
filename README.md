@@ -16,9 +16,4 @@ webserver = WebServer()
 webserver.templates_folder = azcam.db.systemfolder
 webserver.index = f"index_mysystem.html"
 webserver.start()
-
-# options
-azcam_exptool.load()
-azcam_status.load()
-azcam_observe.webobs.load()
 ```
