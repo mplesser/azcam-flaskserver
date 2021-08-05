@@ -1,6 +1,6 @@
 # custom
 *docs/site/
-pypi.bat
+git_*.bat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
