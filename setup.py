@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="azcam-flaskserver",
-    version="21.1.1",
+    version="21.2.0",
     description="azcam extension for flask web server",
     long_description=long_description,
     long_description_content_type="text/markdown",
