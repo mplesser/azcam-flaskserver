@@ -70,7 +70,7 @@ class WebServer(object):
             )
 
         # ******************************************************************************
-        # API commands - .../api/tool/command
+        # API command - .../api/tool/command
         # ******************************************************************************
         @app.route("/api/<path:command>", methods=["GET", "POST"])
         def api(command):
@@ -90,6 +90,36 @@ class WebServer(object):
                     azcam.log(reply, prefix="Web->   ")
 
             return reply
+
+        # ******************************************************************************
+        # JSON API command - .../api/tool/command
+        # ******************************************************************************
+        @app.route("/japi", methods=["GET", "POST"])
+        def japi():
+            """
+            Remote web api commands using JSON.
+            """
+
+            url = request.url
+            azcam.log(url, prefix="Web-> ")
+
+            args = request.get_json()
+            print("args", args)
+
+            toolid = getattr(azcam.db, args["tool"])
+            command = getattr(toolid, args["command"])
+
+            arglist = args["args"]
+            kwargs = args["kwargs"]
+            reply = command(*arglist, **kwargs)
+
+            response = {
+                "message": "Finished",
+                "command": f"{args['tool']}.{args['command']}",
+                "data": reply,
+            }
+
+            return response
 
     def stop(self):
         """
@@ -154,7 +184,7 @@ class WebServer(object):
         """
 
         try:
-            obj, method, kwargs = self._web_parse(url)
+            obj, method, kwargs = self.parse(url)
 
             # primary object must be in db.remote_tools
             objects = obj.split(".")
@@ -166,9 +196,7 @@ class WebServer(object):
             elif len(objects) == 2:
                 objid = getattr(azcam.db.get(objects[0]), objects[1])
             elif len(objects) == 3:
-                objid = getattr(
-                    getattr(azcam.db.get(objects[0]), objects[1]), objects[2]
-                )
+                objid = getattr(getattr(azcam.db.get(objects[0]), objects[1]), objects[2])
             else:
                 objid = None  # too complicated for now
 
@@ -194,7 +222,7 @@ class WebServer(object):
 
         return response
 
-    def _web_parse(self, url):
+    def parse(self, url):
         """
         Parse URL.
         Return the caller object, method, and keyword arguments.
